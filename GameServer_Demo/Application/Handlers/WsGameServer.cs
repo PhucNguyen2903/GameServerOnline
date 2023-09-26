@@ -26,7 +26,7 @@ namespace GameServer_Demo.Application.Handlers
             Console.WriteLine("New Session connected");
             var player = new Player(server:this);
             PlayerManager.AddPlayer(player);
-            return base.CreateSession();
+            return player;
         }
 
         protected override void OnError(SocketError error)

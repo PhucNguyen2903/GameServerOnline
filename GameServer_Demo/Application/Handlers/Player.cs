@@ -1,7 +1,10 @@
 ﻿using GameServer_Demo.Application.Interfaces;
+using GameServer_Demo.Application.Messaging;
+using GameServer_Demo.Application.Messaging.Contains;
 using NetCoreServer;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -38,8 +41,32 @@ namespace GameServer_Demo.Application.Handlers
 
         public override void OnWsReceived(byte[] buffer, long offset, long size)
         {
+            Console.WriteLine("ReceivedData");
             var mess = Encoding.UTF8.GetString(buffer, index: (int)offset, count: (int)size);
-            Console.WriteLine($"Client {SesstionId} send message {mess}");
+            try
+            {
+                var wsMessage = GameHelper.ParseStruct<WsMessage<object>>(mess);
+                switch (wsMessage.Tags)
+                {
+                    case WsTags.Invanlid:
+                        break;
+                    case WsTags.Login:
+                        var loginData = GameHelper.ParseStruct<LoginData>(wsMessage.Data.ToString());
+                        var x = 10;
+                        Console.WriteLine($"Player {x} Login Successfully");
+                        break;
+                    case WsTags.Register:
+                        break;
+                    case WsTags.Looby:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
             ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
         }
 
