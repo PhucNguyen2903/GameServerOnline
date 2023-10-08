@@ -1,4 +1,5 @@
 ﻿using GameServer_Demo.Application.Interfaces;
+using GameServer_Demo.Logger;
 using NetCoreServer;
 using System;
 using System.Collections.Generic;
@@ -14,16 +15,18 @@ namespace GameServer_Demo.Application.Handlers
     {
         public readonly int _port;
         public readonly IPlayerManager PlayerManager;
+        private readonly IGameLogger _logger;
 
-        public WsGameServer(IPAddress address, int port, IPlayerManager playerManager) : base(address, port)
+        public WsGameServer(IPAddress address, int port, IPlayerManager playerManager, IGameLogger logger) : base(address, port)
         {
             this._port = port;
             PlayerManager = playerManager;
+            _logger = logger;
         }
         protected override TcpSession CreateSession()
         {
             //to Handle New Session
-            Console.WriteLine("New Session connected");
+            _logger.Info("New Session connected");
             var player = new Player(server:this);
             PlayerManager.AddPlayer(player);
             return player;
@@ -31,13 +34,13 @@ namespace GameServer_Demo.Application.Handlers
 
         protected override void OnError(SocketError error)
         {
-            Console.WriteLine("Server Sesstion error");
+            _logger.Error("Server Sesstion error");
             base.OnError(error);
         }
 
         protected override void OnDisconnected(TcpSession session)
         {
-            Console.WriteLine("Session Disconnected");
+            _logger.Info("Session Disconnected");
             var player = PlayerManager.FindPlayer(session.Id.ToString());
             if (player != null)
             {
@@ -51,22 +54,27 @@ namespace GameServer_Demo.Application.Handlers
             this.MulticastText(mes);
         }
 
-        public void RestartGame()
+        public void RestartGameServer()
         {
-            this.Restart();
+            if (this.Restart())
+            {
+                _logger.Print("Server Ws Restarted ");
+            }
+
         }
 
-        public void StartGame()
+        public void StartGameServer()
         {
             if (this.Start())
             {
-                Console.WriteLine("Server Ws started at: " + _port);
+                _logger.Print("Server Ws started at: " + _port);
             }
         }
 
-        public void StopGame()
+        public void StopGameServer()
         {
             this.Stop();
+            _logger.Print("Server Ws Stopped ");
         }
 
 

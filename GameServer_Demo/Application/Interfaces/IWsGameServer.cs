@@ -8,8 +8,8 @@ namespace GameServer_Demo.Application.Interfaces
 {
     public interface IWsGameServer
     {
-        void StartGame();
-        void StopGame();
-        void RestartGame();
+        void StartGameServer();
+        void StopGameServer();
+        void RestartGameServer();
     }
 }

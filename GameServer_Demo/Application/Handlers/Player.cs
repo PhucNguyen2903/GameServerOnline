@@ -1,6 +1,7 @@
 ﻿using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.Logger;
 using NetCoreServer;
 using System;
 using System.Collections.Generic;
@@ -18,17 +19,20 @@ namespace GameServer_Demo.Application.Handlers
         public string Name { get; set; }
         private bool isDisconnected { get; set; }
 
+        private IGameLogger _logger;
+
         public Player(WsServer server) : base(server)
         {
             SesstionId = this.Id.ToString();
             isDisconnected = false;
+            _logger = new GameLogger();
         }
 
         public override void OnWsConnected(HttpRequest request)
         {
-            Console.WriteLine("Player Connected");
+            _logger.Info("Player Connected");
             var url = request.Url;
-            Console.WriteLine(url);
+            //Console.WriteLine(url);
 
             isDisconnected = false;
         }
@@ -41,7 +45,7 @@ namespace GameServer_Demo.Application.Handlers
 
         public override void OnWsReceived(byte[] buffer, long offset, long size)
         {
-            Console.WriteLine("ReceivedData");
+            _logger.Info("ReceivedData");
             var mess = Encoding.UTF8.GetString(buffer, index: (int)offset, count: (int)size);
             try
             {
@@ -65,9 +69,10 @@ namespace GameServer_Demo.Application.Handlers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                //to do send invalid message
+                _logger.Error("OnWsReceived error", e);
             }
-            ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
+           // ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
         }
 
         public void SetDisconnection(bool value)
@@ -83,9 +88,7 @@ namespace GameServer_Demo.Application.Handlers
         public void OnDisconection()
         {
             // to do logic Handle Player Disconnected
-            Console.WriteLine("Player Disconnected");
+            _logger.Warning("Player Disconnected", null);
         }
-
-
     }
 }

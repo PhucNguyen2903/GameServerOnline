@@ -1,4 +1,5 @@
 ﻿using GameServer_Demo.Application.Interfaces;
+using GameServer_Demo.Logger;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Concurrent;
@@ -12,11 +13,14 @@ namespace GameServer_Demo.Application.Handlers
     internal class PlayerManager : IPlayerManager
     {
 
-        public ConcurrentDictionary<string, IPlayer> Players { get ; set; } // CCU
+        public ConcurrentDictionary<string, IPlayer> Players { get; set; } // CCU
 
-        public PlayerManager() 
+        private readonly IGameLogger _logger;
+
+        public PlayerManager(IGameLogger logger)
         {
-            Players = new ConcurrentDictionary<string, IPlayer> ();
+            Players = new ConcurrentDictionary<string, IPlayer>();
+            _logger = logger;
         }
 
         public void AddPlayer(IPlayer player)
@@ -24,7 +28,7 @@ namespace GameServer_Demo.Application.Handlers
             if (FindPlayer(player) == null)
             {
                 Players.TryAdd(player.SesstionId, player);
-                Console.WriteLine($"List Players {Players.Count}");
+                _logger.Info($"List Players {Players.Count}");
             }
         }
 
@@ -45,8 +49,8 @@ namespace GameServer_Demo.Application.Handlers
                 Players.TryRemove(Id, out var player);
                 if (player != null)
                 {
-                    Console.WriteLine($"Remove {Id} Success");
-                    Console.WriteLine($"List Players {Players.Count}");
+                    _logger.Info($"Remove {Id} Success");
+                    _logger.Info($"List Players {Players.Count}");
                 }
             }
         }
@@ -57,6 +61,6 @@ namespace GameServer_Demo.Application.Handlers
         }
 
         public List<IPlayer> GetPlayer() => Players.Values.ToList();
-       
+
     }
 }

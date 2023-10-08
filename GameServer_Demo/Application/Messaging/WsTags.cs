@@ -12,6 +12,7 @@ namespace GameServer_Demo.Application.Messaging
         Login,
         Register,
         Looby,
-
+        Run,
+        Stop,
     }
 }
