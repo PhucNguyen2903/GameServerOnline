@@ -1,4 +1,5 @@
-﻿using GameServer_Demo.Application.Interfaces;
+﻿using Database.MongoDB.Handlers;
+using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Logger;
 using NetCoreServer;
 using System;
@@ -16,18 +17,22 @@ namespace GameServer_Demo.Application.Handlers
         public readonly int _port;
         public readonly IPlayerManager PlayerManager;
         private readonly IGameLogger _logger;
+        private readonly MongoDb _mongoDb;
 
-        public WsGameServer(IPAddress address, int port, IPlayerManager playerManager, IGameLogger logger) : base(address, port)
+
+        public WsGameServer(IPAddress address, int port, IPlayerManager playerManager, IGameLogger logger, MongoDb mongodb) : base(address, port)
         {
             this._port = port;
             PlayerManager = playerManager;
             _logger = logger;
+            _mongoDb = mongodb;
         }
+
         protected override TcpSession CreateSession()
         {
             //to Handle New Session
             _logger.Info("New Session connected");
-            var player = new Player(server:this);
+            var player = new Player(server:this, _mongoDb.GetDatabase());
             PlayerManager.AddPlayer(player);
             return player;
         }

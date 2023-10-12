@@ -7,6 +7,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Database.MongoDB.Interfaces;
+using Database.MongoDB.Handlers;
+using GameServer_Demo.GameModel;
 
 namespace GameServer_Demo
 {
@@ -17,8 +20,10 @@ namespace GameServer_Demo
             Console.WriteLine("=))");
 
             IGameLogger gameLogger = new GameLogger();
+            var mongodb = new MongoDb();
+            //var mongoHandlers = new MongoHandler<User>(mongodb.GetDatabase());
             IPlayerManager  playerManager = new PlayerManager(gameLogger);
-            var ws = new WsGameServer(IPAddress.Any, port: 8080, playerManager, gameLogger);
+            var ws = new WsGameServer(IPAddress.Any, port: 8080, playerManager, gameLogger, mongodb);
             ws.StartGameServer();
             gameLogger.Print("Game Server Started");
 

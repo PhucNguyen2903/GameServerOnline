@@ -1,7 +1,11 @@
-﻿using GameServer_Demo.Application.Interfaces;
+﻿using Database.MongoDB.Handlers;
+using Database.MongoDB.Interfaces;
+using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.GameModel;
 using GameServer_Demo.Logger;
+using MongoDB.Driver;
 using NetCoreServer;
 using System;
 using System.Collections.Generic;
@@ -20,12 +24,14 @@ namespace GameServer_Demo.Application.Handlers
         private bool isDisconnected { get; set; }
 
         private IGameLogger _logger;
+        private IGameDB<User> _userDb { get; set; }
 
-        public Player(WsServer server) : base(server)
+        public Player(WsServer server, IMongoDatabase database) : base(server)
         {
             SesstionId = this.Id.ToString();
             isDisconnected = false;
             _logger = new GameLogger();
+            _userDb = new MongoHandler<User>(database);
         }
 
         public override void OnWsConnected(HttpRequest request)
@@ -56,7 +62,9 @@ namespace GameServer_Demo.Application.Handlers
                         break;
                     case WsTags.Login:
                         var loginData = GameHelper.ParseStruct<LoginData>(wsMessage.Data.ToString());
+                        var user = new User("codephui","123456", "Admin");
                         var x = 10;
+                        var newUser = _userDb.Create(user);
                         Console.WriteLine($"Player {x} Login Successfully");
                         break;
                     case WsTags.Register:
