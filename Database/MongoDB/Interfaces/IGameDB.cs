@@ -10,10 +10,10 @@ namespace Database.MongoDB.Interfaces
     public interface IGameDB<T> where T : class
     {
         IMongoDatabase GetDatabase();
-        T Get(string id);
+        T Get(FilterDefinition<T> filter);
         List<T> GetAll();
         T Create(T item);
-        bool Remove(T item);
-        T Update(string id, T item);
+        void Remove(FilterDefinition<T> filter);
+        T Update(FilterDefinition<T> filter, UpdateDefinition<T> updater);
     }
 }

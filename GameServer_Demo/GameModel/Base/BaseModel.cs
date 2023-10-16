@@ -20,7 +20,8 @@ namespace GameServer_Demo.GameModel.Base
 
         public BaseModel() 
         {
-            //Id = new BsonObjectId("");
+            Id = ObjectId.GenerateNewId().ToString();
+            //Id = new BsonObjectId
             CreateAt =DateTime.Now;
         }
     }

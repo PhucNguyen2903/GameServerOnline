@@ -1,4 +1,5 @@
 ﻿using Database.MongoDB.Interfaces;
+using Microsoft.VisualBasic;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -16,24 +17,37 @@ namespace Database.MongoDB.Handlers
         public MongoHandler(IMongoDatabase database)
         {
             _database = database;
+            this.SetCollection();
             //_collection = _database.GetCollection<T>(name:"Users");
+        }
+
+        private void SetCollection() 
+        {
+            switch (typeof(T).Name)
+            {
+                case "User":
+                    _collection = _database.GetCollection<T>("Users");
+                    break;
+                case "Room":
+                    break;
+            }
         }
 
         public T Create(T item)
         {
-           _collection.InsertOne(item);
+           //_collection.InsertOne(item);
             return item;
         }
 
-        public T Get(string id)
+        public T Get(FilterDefinition<T> filter)
         {
-            //return _collection.Find<User>(it => it.Id == id).FirstOrDefault();
-            return default(T);
+            return _collection.Find(filter).FirstOrDefault();
         }
 
         public List<T> GetAll()
         {
-            throw new NotImplementedException();
+            var filter = Builders<T>.Filter.Empty;
+            return _collection.Find(filter).ToList();
         }
 
         public IMongoDatabase GetDatabase()
@@ -41,14 +55,15 @@ namespace Database.MongoDB.Handlers
             return _database;
         }
 
-        public bool Remove(T item)
+        public void Remove(FilterDefinition<T> filter)
         {
-            throw new NotImplementedException();
+            _collection.DeleteOne(filter);
         }
 
-        public T Update(string id, T item)
+        public T Update(FilterDefinition<T> filter, UpdateDefinition<T> updater)
         {
-            throw new NotImplementedException();
+            _collection.UpdateOne(filter, updater);
+            return Get(filter);
         }
     }
 }
