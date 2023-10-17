@@ -18,7 +18,7 @@ namespace Database.MongoDB.Handlers
         {
             _database = database;
             this.SetCollection();
-            //_collection = _database.GetCollection<T>(name:"Users");
+            //_collection = _database.GetCollection<T>(name: "Users");
         }
 
         private void SetCollection() 
@@ -26,7 +26,7 @@ namespace Database.MongoDB.Handlers
             switch (typeof(T).Name)
             {
                 case "User":
-                    _collection = _database.GetCollection<T>("Users");
+                    //_collection = _database.GetCollection<T>("Users");
                     break;
                 case "Room":
                     break;
@@ -35,7 +35,7 @@ namespace Database.MongoDB.Handlers
 
         public T Create(T item)
         {
-           //_collection.InsertOne(item);
+            _collection.InsertOne(item);
             return item;
         }
 

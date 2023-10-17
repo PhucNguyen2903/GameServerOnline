@@ -1,4 +1,5 @@
-﻿using GameServer_Demo.GameModel.Base;
+﻿using GameServer_Demo.Application.Handlers;
+using GameServer_Demo.GameModel.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace GameServer_Demo.GameModel
         public User(string userName, string password, string displayName)
         {
             UserName = userName;
-            Password = password;
+            Password = GameHelper.HashPassword(password);
             DisplayName = displayName;
             Avatar = "";
             Level = 1;
