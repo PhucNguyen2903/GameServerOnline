@@ -12,17 +12,19 @@ namespace GameServer_Demo.GameModel.Base
     public class BaseModel
     {
         [BsonId]
-        [BsonGuidRepresentation((GuidRepresentation)BsonType.ObjectId)]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
-        public DateTime CreateAt { get; set; }
-        public DateTime UpdateAt { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime CreatedAt { get; set; }
 
-        public BaseModel() 
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime UpdatedAt { get; set; }
+
+        public BaseModel()
         {
             Id = ObjectId.GenerateNewId().ToString();
-            //Id = new BsonObjectId
-            CreateAt =DateTime.Now;
+            CreatedAt = DateTime.Now;
         }
     }
 }

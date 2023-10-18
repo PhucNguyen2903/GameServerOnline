@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using Database.MongoDB.Interfaces;
 using Database.MongoDB.Handlers;
 using GameServer_Demo.GameModel;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson;
 
 namespace GameServer_Demo
 {
@@ -20,6 +23,7 @@ namespace GameServer_Demo
             Console.WriteLine("=))");
 
             IGameLogger gameLogger = new GameLogger();
+            BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
             var mongodb = new MongoDb();
             //var mongoHandlers = new MongoHandler<User>(mongodb.GetDatabase());
             IPlayerManager  playerManager = new PlayerManager(gameLogger);

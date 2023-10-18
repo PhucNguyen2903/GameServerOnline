@@ -18,8 +18,8 @@ namespace Database.MongoDB.Handlers
         {
             var setting = MongoClientSettings.FromConnectionString(path);
             _client = new MongoClient(setting);
-        }
 
+        }
 
         public IMongoDatabase GetDatabase()
         {

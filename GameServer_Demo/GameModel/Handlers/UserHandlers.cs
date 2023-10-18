@@ -52,7 +52,7 @@ namespace GameServer_Demo.GameModel.Handlers
             var filter = Builders<User>.Filter.Eq(i => i.Id, id);
             var updater = Builders<User>.Update.Set(i => i.Password, item.Password).
                 Set(i => i.DisplayName, item.DisplayName).Set(i => i.Amount, item.Amount).
-                Set(i => i.Level, item.Level).Set(i => i.Avatar, item.Avatar).Set(i => i.UpdateAt, DateTime.Now);
+                Set(i => i.Level, item.Level).Set(i => i.Avatar, item.Avatar).Set(i => i.UpdatedAt, DateTime.Now);
 
             _userDb.Update(filter, updater);
             return item;

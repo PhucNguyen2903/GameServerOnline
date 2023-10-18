@@ -1,17 +1,22 @@
 ﻿using Database.MongoDB.Interfaces;
 using Microsoft.VisualBasic;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
 
 namespace Database.MongoDB.Handlers
 {
     public class MongoHandler<T> : IGameDB<T> where T : class
     {
         private IMongoDatabase _database;
+
         private IMongoCollection<T> _collection;
 
         public MongoHandler(IMongoDatabase database)
@@ -26,7 +31,7 @@ namespace Database.MongoDB.Handlers
             switch (typeof(T).Name)
             {
                 case "User":
-                    //_collection = _database.GetCollection<T>("Users");
+                    _collection = _database.GetCollection<T>("Users");
                     break;
                 case "Room":
                     break;
