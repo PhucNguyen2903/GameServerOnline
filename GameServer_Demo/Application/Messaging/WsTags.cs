@@ -11,6 +11,7 @@ namespace GameServer_Demo.Application.Messaging
         Invanlid,
         Login,
         Register,
+        UserInfo,
         Looby,
         Run,
         Stop,

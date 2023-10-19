@@ -66,34 +66,34 @@ namespace GameServer_Demo.Application.Handlers
                         break;
                     case WsTags.Login:
                         var loginData = GameHelper.ParseStruct<LoginData>(wsMessage.Data.ToString());
-                        //_userInfo = _userDb.FindByUserName(loginData.Username);
-                        //if (_userInfo != null)
-                        //{
-                        //    var hashPass = GameHelper.HashPassword(loginData.Password);
-                        //    if (hashPass == _userInfo.Password)
-                        //    {
-                        //        // todo move user to lobby
-                        //      this.PlayerJoinLobby();
-                        //        return;
-                        //    }
-                        //}
-                        //var invalidMess = new WsMessage<string>(WsTags.Invanlid, "User or Password is Invalid");
-                        //this.SendMessage(GameHelper.ParseString(invalidMess));
-                        var user = new User("codephui", "123456", "Admin");
-                        var x = 10;
-                        var newUser = _userDb.Create(user);
-                        Console.WriteLine($"Player {x} Login Successfully");
+                        _userInfo = _userDb.FindByUserName(loginData.Username);
+                        if (_userInfo != null)
+                        {
+                            var hashPass = GameHelper.HashPassword(loginData.Password);
+                            if (hashPass == _userInfo.Password)
+                            {
+                                // todo move user to lobby
+                                this.PlayerJoinLobby();
+                                return;
+                            }
+                        }
+                        var invalidMess = new WsMessage<string>(WsTags.Invanlid, "User or Password is Invalid");
+                        this.SendMessage(GameHelper.ParseString(invalidMess));
+                        //var user = new User("codephui", "123456", "Admin");
+                        //var x = 10;
+                        //var newUser = _userDb.Create(user);
+                        Console.WriteLine($"Player Test Login Successfully");
                         break;
                     case WsTags.Register:
                         var regisData = GameHelper.ParseStruct<RegisterData>(wsMessage.Data.ToString());
                         var check = _userDb.FindByUserName(regisData.UserName);
                         if (check != null)
                         {
-                            var invalidMess = new WsMessage<string>(WsTags.Invanlid, "User Exits");
+                            invalidMess = new WsMessage<string>(WsTags.Invanlid, "User Registered");
                             this.SendMessage(GameHelper.ParseString(invalidMess));
                             return;
                         }
-                        newUser = new User(regisData.UserName, regisData.Password, regisData.DisPlayName);
+                        var newUser = new User(regisData.UserName, regisData.Password, regisData.DisPlayName);
                         _userInfo = _userDb.Create(newUser);
 
                         if (_userInfo != null)
@@ -131,10 +131,31 @@ namespace GameServer_Demo.Application.Handlers
             return this.SendTextAsync(mes);
         }
 
+        public bool SendMessage<T>(WsMessage<T> mes)
+        {
+            var mesSend = GameHelper.ParseString(mes);
+            return this.SendMessage(mesSend);
+        }
+
         public void OnDisconection()
         {
             // to do logic Handle Player Disconnected
             _logger.Warning("Player Disconnected", null);
+        }
+
+        public UserInfo GetUserInfo()
+        {
+            if (_userInfo != null)
+            {
+                return new UserInfo()
+                {
+                    DisplayName = _userInfo.DisplayName,
+                    Amount = _userInfo.Amount,
+                    Avatar = _userInfo.Avatar,
+                    Level = _userInfo.Level,
+                };
+            }
+            return new UserInfo();
         }
     }
 }

@@ -15,7 +15,7 @@ namespace GameServer_Demo.GameModel
         public string DisplayName { get; set; }
         public string Avatar { get; set; }
         public int Level { get; set; }
-        public int Amount { get; set; }
+        public long Amount { get; set; }
 
         public User(string userName, string password, string displayName)
         {
