@@ -24,12 +24,19 @@ namespace GameServer_Demo.Room.Handlers
 
         public bool ExitRoom(IPlayer player)
         {
-            throw new NotImplementedException();
+            return this.ExitRoom(player.SesstionId);
         }
 
         public bool ExitRoom(string Id)
         {
-            throw new NotImplementedException();
+            var player = FindPlayer(Id);
+            if (player != null)
+            {
+                Players.TryRemove(player.SesstionId, out player);
+                this.RoomInfo();
+                return true;
+            }
+            return false;
         }
 
         public IPlayer FindPlayer(string id)
@@ -43,20 +50,20 @@ namespace GameServer_Demo.Room.Handlers
             {
                 if (Players.TryAdd(player.SesstionId, player))
                 {
-                    this.LobbyInfo();
+                    this.RoomInfo();
                     return true;
                 }
             }
             return false;
         }
 
-        private void LobbyInfo()
+        private void RoomInfo()
         {
             var lobby = new LobbyInfo()
             {
                 Players = Players.Values.Select(p => p.GetUserInfo()).ToList()
             };
-            var mess = new WsMessage<LobbyInfo>(WsTags.Looby, lobby);
+            var mess = new WsMessage<LobbyInfo>(WsTags.RoomInfo, lobby);
             this.SendMessage(mess);
         }
 

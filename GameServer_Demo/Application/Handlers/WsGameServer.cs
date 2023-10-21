@@ -1,6 +1,8 @@
 ﻿using Database.MongoDB.Handlers;
 using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Logger;
+using GameServer_Demo.Room.Handlers;
+using GameServer_Demo.Room.Interfaces;
 using NetCoreServer;
 using System;
 using System.Collections.Generic;
@@ -18,6 +20,7 @@ namespace GameServer_Demo.Application.Handlers
         public readonly IPlayerManager PlayerManager;
         private readonly IGameLogger _logger;
         private readonly MongoDb _mongoDb;
+        public readonly RoomManager RoomManager;
 
 
         public WsGameServer(IPAddress address, int port, IPlayerManager playerManager, IGameLogger logger, MongoDb mongodb) : base(address, port)
@@ -26,6 +29,7 @@ namespace GameServer_Demo.Application.Handlers
             PlayerManager = playerManager;
             _logger = logger;
             _mongoDb = mongodb;
+            RoomManager = new RoomManager();
         }
 
         protected override TcpSession CreateSession()

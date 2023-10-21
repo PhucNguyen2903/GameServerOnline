@@ -73,6 +73,8 @@ namespace GameServer_Demo.Application.Handlers
                             if (hashPass == _userInfo.Password)
                             {
                                 // todo move user to lobby
+                                var messInfo = new WsMessage<UserInfo>(WsTags.UserInfo,this.GetUserInfo());
+                                this.SendMessage(messInfo);
                                 this.PlayerJoinLobby();
                                 return;
                             }
@@ -86,6 +88,14 @@ namespace GameServer_Demo.Application.Handlers
                         break;
                     case WsTags.Register:
                         var regisData = GameHelper.ParseStruct<RegisterData>(wsMessage.Data.ToString());
+
+                        if (_userInfo != null)
+                        {
+                            invalidMess = new WsMessage<string>(WsTags.Invanlid, "You are logined");
+                            this.SendMessage(GameHelper.ParseString(invalidMess));
+                            return;
+                        }
+
                         var check = _userDb.FindByUserName(regisData.UserName);
                         if (check != null)
                         {
@@ -93,6 +103,8 @@ namespace GameServer_Demo.Application.Handlers
                             this.SendMessage(GameHelper.ParseString(invalidMess));
                             return;
                         }
+
+                       
                         var newUser = new User(regisData.UserName, regisData.Password, regisData.DisPlayName);
                         _userInfo = _userDb.Create(newUser);
 
@@ -101,7 +113,7 @@ namespace GameServer_Demo.Application.Handlers
                             this.PlayerJoinLobby();
                         }
                         break;
-                    case WsTags.Looby:
+                    case WsTags.RoomInfo:
                         break;
                     default:
                         break;
@@ -117,7 +129,8 @@ namespace GameServer_Demo.Application.Handlers
 
         private void PlayerJoinLobby() 
         {
-            // to do logic join lobby
+            var lobby = ((WsGameServer)Server).RoomManager.Lobby;
+            lobby.JoinRoom(this);
             Console.WriteLine("Player Join Lobby");
         }
 
@@ -140,6 +153,8 @@ namespace GameServer_Demo.Application.Handlers
         public void OnDisconection()
         {
             // to do logic Handle Player Disconnected
+            var lobby = ((WsGameServer)Server).RoomManager.Lobby;
+            lobby.ExitRoom(this);
             _logger.Warning("Player Disconnected", null);
         }
 

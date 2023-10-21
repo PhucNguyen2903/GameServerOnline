@@ -13,6 +13,8 @@ using GameServer_Demo.GameModel;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
+using GameServer_Demo.Room.Interfaces;
+using GameServer_Demo.Room.Handlers;
 
 namespace GameServer_Demo
 {
@@ -27,6 +29,7 @@ namespace GameServer_Demo
             var mongodb = new MongoDb();
             //var mongoHandlers = new MongoHandler<User>(mongodb.GetDatabase());
             IPlayerManager  playerManager = new PlayerManager(gameLogger);
+            IRoomManager roomManager = new RoomManager();
             var ws = new WsGameServer(IPAddress.Any, port: 8080, playerManager, gameLogger, mongodb);
             ws.StartGameServer();
             gameLogger.Print("Game Server Started");
