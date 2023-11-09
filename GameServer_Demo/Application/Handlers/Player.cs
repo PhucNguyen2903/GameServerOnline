@@ -115,6 +115,10 @@ namespace GameServer_Demo.Application.Handlers
                         break;
                     case WsTags.RoomInfo:
                         break;
+                    case WsTags.CreateRoom:
+                        var createRoom = GameHelper.ParseStruct<CreateRoomData>(wsMessage.Data.ToString());
+                        this.OnUserCreateRoom(createRoom);
+                        break;
                     default:
                         break;
                 }
@@ -125,6 +129,16 @@ namespace GameServer_Demo.Application.Handlers
                 _logger.Error("OnWsReceived error", e);
             }
            // ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
+        }
+
+        private void OnUserCreateRoom(CreateRoomData data) 
+        {
+            var room = ((WsGameServer)Server).RoomManager.CreateRoom(data.Time);
+            if (room != null && room.JoinRoom(this))
+            {
+                var lobby = ((WsGameServer)Server).RoomManager.Lobby;
+                lobby.ExitRoom(this);
+            }
         }
 
         private void PlayerJoinLobby() 

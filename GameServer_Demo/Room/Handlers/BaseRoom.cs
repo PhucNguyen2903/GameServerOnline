@@ -2,6 +2,7 @@
 using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.Room.Constant;
 using GameServer_Demo.Room.Interfaces;
 using System;
 using System.Collections.Concurrent;
@@ -16,13 +17,16 @@ namespace GameServer_Demo.Room.Handlers
     {
         public string Id { get; set; }
         public ConcurrentDictionary<string, IPlayer> Players { get; set; }
-        public BaseRoom()
+        public RoomType RoomType { get; set; }
+
+        public BaseRoom( RoomType type)
         {
+            RoomType = type;
             Id = GameHelper.RandomString(10);
             Players = new ConcurrentDictionary<string, IPlayer>();
         }
 
-        public bool ExitRoom(IPlayer player)
+        public virtual bool ExitRoom(IPlayer player)
         {
             return this.ExitRoom(player.SesstionId);
         }
@@ -39,12 +43,12 @@ namespace GameServer_Demo.Room.Handlers
             return false;
         }
 
-        public IPlayer FindPlayer(string id)
+        public virtual IPlayer FindPlayer(string id)
         {
             return Players.FirstOrDefault(p => p.Key.Equals(id)).Value;
         }
 
-        public bool JoinRoom(IPlayer player)
+        public virtual bool JoinRoom(IPlayer player)
         {
             if (FindPlayer(player.SesstionId) == null)
             {
@@ -59,11 +63,12 @@ namespace GameServer_Demo.Room.Handlers
 
         private void RoomInfo()
         {
-            var lobby = new LobbyInfo()
+            var lobby = new RoomInfo()
             {
+                //RoomType = RoomType
                 Players = Players.Values.Select(p => p.GetUserInfo()).ToList()
             };
-            var mess = new WsMessage<LobbyInfo>(WsTags.RoomInfo, lobby);
+            var mess = new WsMessage<RoomInfo>(WsTags.RoomInfo, lobby);
             this.SendMessage(mess);
         }
 

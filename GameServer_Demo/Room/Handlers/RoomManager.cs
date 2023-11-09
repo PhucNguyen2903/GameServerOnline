@@ -1,4 +1,5 @@
-﻿using GameServer_Demo.Room.Interfaces;
+﻿using GameServer_Demo.Room.Constant;
+using GameServer_Demo.Room.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,13 +11,13 @@ namespace GameServer_Demo.Room.Handlers
 {
     public class RoomManager : IRoomManager
     {
-        public BaseRoom Lobby { get; set; }
+        public Lobby Lobby { get; set; }
         private ConcurrentDictionary<string, BaseRoom> Rooms { get; set; }
 
         public RoomManager()
         {
             Rooms = new ConcurrentDictionary<string, BaseRoom>();
-            Lobby = new BaseRoom();
+            Lobby = new Lobby(RoomType.Lobby);
         }
         public BaseRoom FindRoom(string id)
         {
@@ -34,9 +35,9 @@ namespace GameServer_Demo.Room.Handlers
             return false;
         }
 
-        public BaseRoom CreateRoom()
+        public BaseRoom CreateRoom( int timer)
         {
-            var room = new BaseRoom();
+            var room = new TickTacToeRoom(timer);
             Rooms.TryAdd(room.Id, room);
             return room;
         }

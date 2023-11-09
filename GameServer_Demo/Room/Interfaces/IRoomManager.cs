@@ -9,8 +9,8 @@ namespace GameServer_Demo.Room.Interfaces
 {
     public interface IRoomManager
     {
-        BaseRoom Lobby { get; set; }
-        BaseRoom CreateRoom();
+        Lobby Lobby { get; set; }
+        BaseRoom CreateRoom(int timer);
         BaseRoom FindRoom(string id);
         bool RemoveRoom(string Id);
     }
