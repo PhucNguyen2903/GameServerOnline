@@ -1,5 +1,6 @@
 ﻿using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
+using GameServer_Demo.Application.Messaging.Contains;
 using GameServer_Demo.Room.Constant;
 using System;
 using System.Collections.Concurrent;
@@ -24,5 +25,6 @@ namespace GameServer_Demo.Room.Interfaces
         void SendMessage(string mes);
         void SendMessage<T>(WsMessage<T> mes);
         void SendMessage<T>(WsMessage<T> mes, string idIgnore);
+        RoomInfo GetRoomInfo();
     }
 }

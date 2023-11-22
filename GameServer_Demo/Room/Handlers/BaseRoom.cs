@@ -63,12 +63,7 @@ namespace GameServer_Demo.Room.Handlers
 
         private void RoomInfo()
         {
-            var lobby = new RoomInfo()
-            {
-                //RoomType = RoomType
-                Players = Players.Values.Select(p => p.GetUserInfo()).ToList()
-            };
-            var mess = new WsMessage<RoomInfo>(WsTags.RoomInfo, lobby);
+            var mess = new WsMessage<RoomInfo>(WsTags.RoomInfo, this.GetRoomInfo());
             this.SendMessage(mess);
         }
 
@@ -103,6 +98,16 @@ namespace GameServer_Demo.Room.Handlers
                     player.SendMessage(mes);
                 }
             }
+        }
+
+        public RoomInfo GetRoomInfo()
+        {
+            return new()
+            {
+                RoomId = this.Id,
+                RoomType = this.RoomType,
+                Players = Players.Values.Select(p => p.GetUserInfo()).ToList(),
+            };
         }
     }
 }

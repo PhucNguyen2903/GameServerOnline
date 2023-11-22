@@ -73,7 +73,7 @@ namespace GameServer_Demo.Application.Handlers
                             if (hashPass == _userInfo.Password)
                             {
                                 // todo move user to lobby
-                                var messInfo = new WsMessage<UserInfo>(WsTags.UserInfo,this.GetUserInfo());
+                                var messInfo = new WsMessage<UserInfo>(WsTags.UserInfo, this.GetUserInfo());
                                 this.SendMessage(messInfo);
                                 this.PlayerJoinLobby();
                                 return;
@@ -81,9 +81,7 @@ namespace GameServer_Demo.Application.Handlers
                         }
                         var invalidMess = new WsMessage<string>(WsTags.Invanlid, "User or Password is Invalid");
                         this.SendMessage(GameHelper.ParseString(invalidMess));
-                        //var user = new User("codephui", "123456", "Admin");
-                        //var x = 10;
-                        //var newUser = _userDb.Create(user);
+                    
                         Console.WriteLine($"Player Test Login Successfully");
                         break;
                     case WsTags.Register:
@@ -104,7 +102,7 @@ namespace GameServer_Demo.Application.Handlers
                             return;
                         }
 
-                       
+
                         var newUser = new User(regisData.UserName, regisData.Password, regisData.DisPlayName);
                         _userInfo = _userDb.Create(newUser);
 
@@ -119,6 +117,10 @@ namespace GameServer_Demo.Application.Handlers
                         var createRoom = GameHelper.ParseStruct<CreateRoomData>(wsMessage.Data.ToString());
                         this.OnUserCreateRoom(createRoom);
                         break;
+                    case WsTags.JoinRoom:
+                        var roomInfo = GameHelper.ParseStruct<RoomInfoData>(wsMessage.Data.ToString());
+                        this.OnUserJoinRoom(roomInfo);
+                        break;
                     default:
                         break;
                 }
@@ -128,16 +130,28 @@ namespace GameServer_Demo.Application.Handlers
                 //to do send invalid message
                 _logger.Error("OnWsReceived error", e);
             }
-           // ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
+            // ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
         }
 
-        private void OnUserCreateRoom(CreateRoomData data) 
+        private void OnUserCreateRoom(CreateRoomData data)
         {
             var room = ((WsGameServer)Server).RoomManager.CreateRoom(data.Time);
             if (room != null && room.JoinRoom(this))
             {
                 var lobby = ((WsGameServer)Server).RoomManager.Lobby;
                 lobby.ExitRoom(this);
+            }
+
+            //var messInfo = new WsMessage<UserInfo>(WsTags.CreateRoom, this.GetUserInfo());
+            //this.SendMessage(messInfo);
+        }
+
+        private void OnUserJoinRoom(RoomInfoData data) 
+        {
+            var room = ((WsGameServer)Server).RoomManager.FindRoom(data.RoomId);
+            if (room != null)
+            {
+                room.JoinRoom(this);
             }
         }
 
@@ -178,6 +192,7 @@ namespace GameServer_Demo.Application.Handlers
             {
                 return new UserInfo()
                 {
+                    Id = this._userInfo.Id,
                     DisplayName = _userInfo.DisplayName,
                     Amount = _userInfo.Amount,
                     Avatar = _userInfo.Avatar,

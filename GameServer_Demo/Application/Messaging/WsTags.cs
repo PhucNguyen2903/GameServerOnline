@@ -16,5 +16,7 @@ namespace GameServer_Demo.Application.Messaging
         LobbyInfo = 5,
         CreateRoom = 6,
         QuickPlay = 7,
+        ListRoom = 8,
+        JoinRoom = 9,
     }
 }

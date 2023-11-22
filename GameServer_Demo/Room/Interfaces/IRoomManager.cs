@@ -1,4 +1,5 @@
-﻿using GameServer_Demo.Room.Handlers;
+﻿using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.Room.Handlers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace GameServer_Demo.Room.Interfaces
         Lobby Lobby { get; set; }
         BaseRoom CreateRoom(int timer);
         BaseRoom FindRoom(string id);
+
+        List<BaseRoom> ListRoom();
         bool RemoveRoom(string Id);
     }
 }
