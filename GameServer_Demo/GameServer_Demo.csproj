@@ -26,4 +26,9 @@
     <ProjectReference Include="..\Database\Database.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Game_Tick_Tac_Toe\Interfaces\" />
+    <Folder Include="Game_Tick_Tac_Toe\Handlers\" />
+  </ItemGroup>
+
 </Project>

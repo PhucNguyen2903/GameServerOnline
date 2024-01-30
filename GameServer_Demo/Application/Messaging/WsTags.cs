@@ -18,5 +18,9 @@ namespace GameServer_Demo.Application.Messaging
         QuickPlay = 7,
         ListRoom = 8,
         JoinRoom = 9,
+        ExitRoom = 10, 
+        StartGame = 11,
+        Turn = 12,
+        GameInfo = 13
     }
 }

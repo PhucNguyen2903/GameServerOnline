@@ -3,9 +3,12 @@ using Database.MongoDB.Interfaces;
 using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.Game_Tick_Tac_Toe.Constant;
+using GameServer_Demo.Game_Tick_Tac_Toe.Room;
 using GameServer_Demo.GameModel;
 using GameServer_Demo.GameModel.Handlers;
 using GameServer_Demo.Logger;
+using GameServer_Demo.Room.Handlers;
 using MongoDB.Driver;
 using NetCoreServer;
 using System;
@@ -28,6 +31,11 @@ namespace GameServer_Demo.Application.Handlers
         private UserHandlers _userDb { get; set; }
 
         private User _userInfo { get; set; }
+
+        private TickTacToeRoom _currenRoom { get; set; }
+
+        private PixelType PixelType { get; set; }
+
         //private IGameDB<User> _userDb { get; set; }
 
         public Player(WsServer server, IMongoDatabase database) : base(server)
@@ -121,6 +129,14 @@ namespace GameServer_Demo.Application.Handlers
                         var roomInfo = GameHelper.ParseStruct<RoomInfoData>(wsMessage.Data.ToString());
                         this.OnUserJoinRoom(roomInfo);
                         break;
+                    case WsTags.ExitRoom:
+                        this.OnUserExitRoom();
+                        break;
+                    case WsTags.StartGame:
+                        this.OnStartGame();
+                        break;
+                    case WsTags.Turn:
+                        break;
                     default:
                         break;
                 }
@@ -133,13 +149,21 @@ namespace GameServer_Demo.Application.Handlers
             // ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
         }
 
+        private void OnStartGame() 
+        {
+            if (_currenRoom == null) return;
+            _currenRoom.StartGame(this);
+        }
+
         private void OnUserCreateRoom(CreateRoomData data)
         {
-            var room = ((WsGameServer)Server).RoomManager.CreateRoom(data.Time);
+            var room = (TickTacToeRoom)((WsGameServer)Server).RoomManager.CreateRoom(data.Time);
             if (room != null && room.JoinRoom(this))
             {
                 var lobby = ((WsGameServer)Server).RoomManager.Lobby;
                 lobby.ExitRoom(this);
+                lobby.SendListMatch();
+                this._currenRoom = room;
             }
 
             //var messInfo = new WsMessage<UserInfo>(WsTags.CreateRoom, this.GetUserInfo());
@@ -148,10 +172,24 @@ namespace GameServer_Demo.Application.Handlers
 
         private void OnUserJoinRoom(RoomInfoData data) 
         {
-            var room = ((WsGameServer)Server).RoomManager.FindRoom(data.RoomId);
-            if (room != null)
+            var room = (TickTacToeRoom)((WsGameServer)Server).RoomManager.FindRoom(data.RoomId);
+            if (room != null && room.JoinRoom(this))
             {
-                room.JoinRoom(this);
+                //room.JoinRoom(this);
+                this._currenRoom = (TickTacToeRoom) room;
+            }
+        }
+
+        private void OnUserExitRoom() 
+        {
+            if (_currenRoom == null)
+            {
+                return;
+            }
+
+            if (this._currenRoom.ExitRoom(this))
+            {
+                this.PlayerJoinLobby();
             }
         }
 
@@ -183,6 +221,7 @@ namespace GameServer_Demo.Application.Handlers
             // to do logic Handle Player Disconnected
             var lobby = ((WsGameServer)Server).RoomManager.Lobby;
             lobby.ExitRoom(this);
+            this.OnUserExitRoom();
             _logger.Warning("Player Disconnected", null);
         }
 
@@ -197,9 +236,20 @@ namespace GameServer_Demo.Application.Handlers
                     Amount = _userInfo.Amount,
                     Avatar = _userInfo.Avatar,
                     Level = _userInfo.Level,
+                    PixelType = this.PixelType,
                 };
             }
             return new UserInfo();
+        }
+
+        public void SetPixelType(PixelType type)
+        {
+            this.PixelType = type;
+        }
+
+        public PixelType GetPixelType()
+        {
+            return this.PixelType;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.Game_Tick_Tac_Toe.Room;
 using GameServer_Demo.Room.Constant;
 using GameServer_Demo.Room.Interfaces;
 using System;
@@ -11,7 +12,8 @@ using System.Threading.Tasks;
 namespace GameServer_Demo.Room.Handlers
 {
     public class RoomManager : IRoomManager
-    {
+    {   
+        public static IRoomManager Instance { get; set; }
         public Lobby Lobby { get; set; }
         private ConcurrentDictionary<string, BaseRoom> Rooms { get; set; }
 
@@ -19,6 +21,7 @@ namespace GameServer_Demo.Room.Handlers
         {
             Rooms = new ConcurrentDictionary<string, BaseRoom>();
             Lobby = new Lobby(RoomType.Lobby, this);
+            Instance = this;
         }
         public BaseRoom FindRoom(string id)
         {
@@ -31,6 +34,7 @@ namespace GameServer_Demo.Room.Handlers
             if (oldRoom != null)
             {
                 Rooms.TryRemove(Id, out var room);
+                this.Lobby.SendListMatch();
                 return room != null;
             }
             return false;

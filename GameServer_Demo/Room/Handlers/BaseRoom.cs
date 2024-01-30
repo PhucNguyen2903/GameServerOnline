@@ -2,6 +2,7 @@
 using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.Game_Tick_Tac_Toe.Constant;
 using GameServer_Demo.Room.Constant;
 using GameServer_Demo.Room.Interfaces;
 using System;
@@ -17,6 +18,9 @@ namespace GameServer_Demo.Room.Handlers
     {
         public string Id { get; set; }
         public ConcurrentDictionary<string, IPlayer> Players { get; set; }
+
+        protected string OwnerId { get; set; }
+
         public RoomType RoomType { get; set; }
 
         public BaseRoom( RoomType type)
@@ -31,13 +35,31 @@ namespace GameServer_Demo.Room.Handlers
             return this.ExitRoom(player.SesstionId);
         }
 
+        private void ChangeOwner(PixelType exitPixelType) 
+        {
+            var player = Players.Values.ToList()[0];
+            OwnerId = player.GetUserInfo().Id;
+            player.SetPixelType(exitPixelType);
+        }
+
         public bool ExitRoom(string Id)
         {
             var player = FindPlayer(Id);
             if (player != null)
             {
-                Players.TryRemove(player.SesstionId, out player);
-                this.RoomInfo();
+                Players.TryRemove(player.SesstionId, out var playerRemove);
+
+                if (Players.IsEmpty)
+                {
+                    RoomManager.Instance.RemoveRoom(this.Id);
+                    return true;
+                }
+
+                if (player.GetUserInfo().Id == OwnerId)
+                {
+                    this.ChangeOwner(player.GetPixelType());
+                }
+
                 return true;
             }
             return false;
@@ -54,14 +76,17 @@ namespace GameServer_Demo.Room.Handlers
             {
                 if (Players.TryAdd(player.SesstionId, player))
                 {
-                    this.RoomInfo();
+                    if (this.OwnerId == string.Empty )
+                    {
+                        this.OwnerId = player.GetUserInfo().Id;
+                    }
                     return true;
                 }
             }
             return false;
         }
 
-        private void RoomInfo()
+        public void RoomInfo()
         {
             var mess = new WsMessage<RoomInfo>(WsTags.RoomInfo, this.GetRoomInfo());
             this.SendMessage(mess);
@@ -106,6 +131,7 @@ namespace GameServer_Demo.Room.Handlers
             {
                 RoomId = this.Id,
                 RoomType = this.RoomType,
+                OwnerId = this.OwnerId,
                 Players = Players.Values.Select(p => p.GetUserInfo()).ToList(),
             };
         }

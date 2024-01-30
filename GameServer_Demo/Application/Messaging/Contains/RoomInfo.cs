@@ -11,6 +11,8 @@ namespace GameServer_Demo.Application.Messaging.Contains
     public struct RoomInfo 
     {
         public string RoomId { get; set; }
+
+        public string OwnerId { get; set; }
         public List<UserInfo> Players { get; set; }
       public RoomType RoomType { get; set; }
     }

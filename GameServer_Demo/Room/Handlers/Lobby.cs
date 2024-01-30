@@ -1,4 +1,5 @@
-﻿using GameServer_Demo.Application.Interfaces;
+﻿using GameServer_Demo.Application.Handlers;
+using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains;
 using GameServer_Demo.Room.Constant;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace GameServer_Demo.Room.Handlers
 {
-    public class Lobby: BaseRoom
+    public class Lobby : BaseRoom
     {
         private readonly IRoomManager _roomManager;
         public Lobby(RoomType type, IRoomManager roomManager) : base(type)
@@ -22,12 +23,24 @@ namespace GameServer_Demo.Room.Handlers
         public override bool JoinRoom(IPlayer player)
         {
             base.JoinRoom(player);
-            var listRoom = this._roomManager.ListRoom();
-            var message = new WsMessage<List<RoomInfo>>(WsTags.ListRoom, listRoom.Select(item => item.GetRoomInfo()).ToList());
-            player.SendMessage(message);
+            this.RoomInfo();
+            this.SendListMatch(player);
             return true;
         }
 
+        public void SendListMatch(IPlayer player = null)
+        {
+            var listRoom = this._roomManager.ListRoom();
+            var message = new WsMessage<List<RoomInfo>>(WsTags.ListRoom, listRoom.Select(item => item.GetRoomInfo()).ToList());
 
+            if (player != null)
+            {
+                player.SendMessage(message);
+            }
+            else
+            {
+                this.SendMessage(message);
+            }
+        }
     }
 }
