@@ -19,7 +19,7 @@ namespace GameServer_Demo.Room.Handlers
         public string Id { get; set; }
         public ConcurrentDictionary<string, IPlayer> Players { get; set; }
 
-        protected string OwnerId { get; set; }
+        public string OwnerId { get; set; }
 
         public RoomType RoomType { get; set; }
 
@@ -32,7 +32,7 @@ namespace GameServer_Demo.Room.Handlers
 
         public virtual bool ExitRoom(IPlayer player)
         {
-            return this.ExitRoom(player.SesstionId);
+            return this.ExitRoom(player.GetUserInfo().Id);
         }
 
         private void ChangeOwner(PixelType exitPixelType) 
@@ -72,9 +72,9 @@ namespace GameServer_Demo.Room.Handlers
 
         public virtual bool JoinRoom(IPlayer player)
         {
-            if (FindPlayer(player.SesstionId) == null)
+            if (FindPlayer(player.GetUserInfo().Id ) == null)
             {
-                if (Players.TryAdd(player.SesstionId, player))
+                if (Players.TryAdd(player.GetUserInfo().Id, player))
                 {
                     if (this.OwnerId == string.Empty )
                     {
@@ -86,7 +86,7 @@ namespace GameServer_Demo.Room.Handlers
             return false;
         }
 
-        public void RoomInfo()
+        public void RoomInfo(IPlayer player = null)
         {
             var mess = new WsMessage<RoomInfo>(WsTags.RoomInfo, this.GetRoomInfo());
             this.SendMessage(mess);

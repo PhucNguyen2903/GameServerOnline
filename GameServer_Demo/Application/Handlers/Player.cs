@@ -3,6 +3,7 @@ using Database.MongoDB.Interfaces;
 using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains;
+using GameServer_Demo.Application.Messaging.Contains.Match;
 using GameServer_Demo.Game_Tick_Tac_Toe.Constant;
 using GameServer_Demo.Game_Tick_Tac_Toe.Room;
 using GameServer_Demo.GameModel;
@@ -89,7 +90,7 @@ namespace GameServer_Demo.Application.Handlers
                         }
                         var invalidMess = new WsMessage<string>(WsTags.Invanlid, "User or Password is Invalid");
                         this.SendMessage(GameHelper.ParseString(invalidMess));
-                    
+
                         Console.WriteLine($"Player Test Login Successfully");
                         break;
                     case WsTags.Register:
@@ -137,6 +138,9 @@ namespace GameServer_Demo.Application.Handlers
                         break;
                     case WsTags.Turn:
                         break;
+                    case WsTags.SetPlace:
+                        this._currenRoom?.SetPlace(this,GameHelper.ParseStruct<PlaceData>(wsMessage.Data.ToString()));
+                        break;
                     default:
                         break;
                 }
@@ -149,7 +153,7 @@ namespace GameServer_Demo.Application.Handlers
             // ((WsGameServer)Server).SendAll(mes: $"{this.SesstionId} send message {mess}");
         }
 
-        private void OnStartGame() 
+        private void OnStartGame()
         {
             if (_currenRoom == null) return;
             _currenRoom.StartGame(this);
@@ -157,7 +161,7 @@ namespace GameServer_Demo.Application.Handlers
 
         private void OnUserCreateRoom(CreateRoomData data)
         {
-            var room = (TickTacToeRoom)((WsGameServer)Server).RoomManager.CreateRoom(data.Time);
+            var room = (TickTacToeRoom)((WsGameServer)Server).RoomManager.CreateRoom(data.Time, this._userInfo.Id);
             if (room != null && room.JoinRoom(this))
             {
                 var lobby = ((WsGameServer)Server).RoomManager.Lobby;
@@ -170,22 +174,19 @@ namespace GameServer_Demo.Application.Handlers
             //this.SendMessage(messInfo);
         }
 
-        private void OnUserJoinRoom(RoomInfoData data) 
+        private void OnUserJoinRoom(RoomInfoData data)
         {
             var room = (TickTacToeRoom)((WsGameServer)Server).RoomManager.FindRoom(data.RoomId);
             if (room != null && room.JoinRoom(this))
             {
                 //room.JoinRoom(this);
-                this._currenRoom = (TickTacToeRoom) room;
+                this._currenRoom = (TickTacToeRoom)room;
             }
         }
 
-        private void OnUserExitRoom() 
+        private void OnUserExitRoom()
         {
-            if (_currenRoom == null)
-            {
-                return;
-            }
+            if (_currenRoom == null) return;
 
             if (this._currenRoom.ExitRoom(this))
             {
@@ -193,7 +194,7 @@ namespace GameServer_Demo.Application.Handlers
             }
         }
 
-        private void PlayerJoinLobby() 
+        private void PlayerJoinLobby()
         {
             var lobby = ((WsGameServer)Server).RoomManager.Lobby;
             lobby.JoinRoom(this);
@@ -220,8 +221,8 @@ namespace GameServer_Demo.Application.Handlers
         {
             // to do logic Handle Player Disconnected
             var lobby = ((WsGameServer)Server).RoomManager.Lobby;
-            lobby.ExitRoom(this);
             this.OnUserExitRoom();
+            lobby.ExitRoom(this);
             _logger.Warning("Player Disconnected", null);
         }
 

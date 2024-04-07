@@ -21,6 +21,8 @@ namespace GameServer_Demo.Application.Messaging
         ExitRoom = 10, 
         StartGame = 11,
         Turn = 12,
-        GameInfo = 13
+        GameInfo = 13,
+        SetPlace = 14,
+        GameOver = 15,
     }
 }

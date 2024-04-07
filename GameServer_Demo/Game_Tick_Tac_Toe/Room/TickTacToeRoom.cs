@@ -3,9 +3,9 @@ using GameServer_Demo.Application.Interfaces;
 using GameServer_Demo.Application.Messaging;
 using GameServer_Demo.Application.Messaging.Contains.Match;
 using GameServer_Demo.Game_Tick_Tac_Toe.Constant;
+using GameServer_Demo.Logger;
 using GameServer_Demo.Room.Constant;
 using GameServer_Demo.Room.Handlers;
-using System.Timers;
 using Timer = System.Timers.Timer;
 
 namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
@@ -13,7 +13,7 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
     public class TickTacToeRoom : BaseRoom
     {
         private readonly int _time;
-        private List<List<int>> Board { get; set; }
+        private List<List<PixelType>> Board { get; set; }
 
         private MatchStatus matchStatus { get; set; }
 
@@ -25,12 +25,40 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
 
         private int Turn { get; set; }
 
-        public TickTacToeRoom(int time = 10) : base(RoomType.Battle)
+        private readonly IGameLogger _logger;
+
+        public TickTacToeRoom(int time = 20) : base(RoomType.Battle)
         {
+            _logger = new GameLogger();
             _time = time;
-            Board = new List<List<int>>();
+            Board = new List<List<PixelType>>();
             matchStatus = MatchStatus.Init;
             this.Turn = 0;
+            this.InitBoard();
+        }
+
+        private void InitBoard() 
+        {
+            this.Board = new List<List<PixelType>>();
+            for (int i = 0; i < 10; i++)
+            {
+                var rows = new List<PixelType>();
+                for (int col = 0; col < 10; col++)
+                {
+                    rows.Add(PixelType.None);
+                }
+                this.Board.Add(rows);
+            }
+        }
+
+        private void ResetMatch() 
+        {
+            this.InitBoard();
+            this.CurrentTurn = null;
+            this.Turn = 0;
+            this.matchStatus = MatchStatus.Init;
+            this.TurnTimer = null;
+            this.TurnId = string.Empty;
         }
 
         public override bool JoinRoom(IPlayer player)
@@ -54,6 +82,7 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
         public void SetTurn()
         {
             this.Turn += 1;
+            this.TurnTimer?.Dispose();
             if (this.CurrentTurn != null)
             {
                 var nextPlayer = Players.FirstOrDefault(p => p.Key != CurrentTurn).Value;
@@ -151,9 +180,9 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
                 return;
             }
 
-            if (this.matchStatus != MatchStatus.Init)
+            if (this.matchStatus == MatchStatus.Start)
             {
-                invalidMess.Data = "The game have been started or ended";
+                invalidMess.Data = "The game have been starting";
                 player.SendMessage(invalidMess);
                 return;
             }
@@ -165,6 +194,7 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
                 return;
             }
 
+            this.ResetMatch();
             matchStatus = MatchStatus.Start;
             var message = new WsMessage<GameInfo>(WsTags.GameInfo, new GameInfo()
             {
@@ -181,6 +211,201 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
             base.ExitRoom(player);
             this.RoomInfo();
             return true;
+        }
+
+        public void SetPlace(IPlayer player, PlaceData data) 
+        {
+            //check player in matchs
+
+            if (FindPlayer(player.GetUserInfo().Id) == null)
+            {
+                return;
+            }
+
+            //validate turn owner
+            var invalidMess = new WsMessage<string>(WsTags.Invanlid, "You don't have permissions");
+            if (CurrentTurn != player.GetUserInfo().Id)
+            {
+                invalidMess.Data = "It's not your turn";
+                player.SendMessage(invalidMess);
+                return;
+            }
+
+            var place = this.Board[data.Row][data.Col];
+
+            if (place != PixelType.None)
+            {
+                invalidMess.Data = "You can't set Here";
+                player.SendMessage(invalidMess);
+            }
+
+            this.Board[data.Row][data.Col] = data.PixelType;
+            var mess = new WsMessage<PlaceData>(WsTags.SetPlace, data);
+            this.SendMessage(mess);
+            var gameover = this.CheckGameOver(data);
+
+            if (gameover)
+            {
+                //to and match
+                this.GameOver(player.GetUserInfo().Id);
+                return;
+            }
+
+            SetTurn();
+        }
+
+        private void GameOver(string winerId) 
+        {
+            _logger.Print("Game over");
+            matchStatus = MatchStatus.GameOver;
+            this.TurnTimer?.Dispose();
+
+
+            var endMatchData = new EndMatchData()
+            {
+                WinnerId = winerId,
+                Point = 10,
+            };
+            var mes = new WsMessage<EndMatchData>(WsTags.GameOver, endMatchData);
+            this.SendMessage(mes);
+
+        }
+
+        private bool CheckGameOver(PlaceData data) 
+        {
+            //check row
+
+            var pixelCount = 1;
+            for (var row = data.Row - 1; row >= 0; row--)
+            {
+                if (this.Board[row][data.Col] != data.PixelType)
+                {
+                    break;
+                }
+                pixelCount++;
+            }
+
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+
+            //check col
+            pixelCount = 1;
+
+            for (int col = data.Col - 1; col >= 0; col--)
+            {
+                if (this.Board[data.Row][col] != data.PixelType)
+                {
+                    break;
+                }
+                pixelCount++;
+            }
+
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+            // check all row
+            pixelCount = 1;
+            for (int row = 0; row < 10; row++)
+            {
+                if (this.Board[row][data.Col] != data.PixelType)
+                {
+                    break;
+                }
+                pixelCount++;
+            }
+
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+            pixelCount = 1;
+
+            // check all col
+
+            for (int col = 0; col < 10; col++)
+            {
+                if (this.Board[data.Row][col] != data.PixelType)
+                {
+                    break;
+                }
+                pixelCount++;
+            }
+
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+            //check diagonal right to left
+            pixelCount = 1;
+            for (int col = data.Col - 1, row = data.Row + 1; col >= 0  && col < 10; col--, row++)
+            {
+                if (this.Board[row][col] != data.PixelType)
+                {
+                    break;
+                }
+
+                pixelCount++;
+            }
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+            //check diagonal left to right
+            pixelCount = 1;
+            for (int col = data.Col + 1, row = data.Row - 1; col >= 0 && col < 10; col++, row--)
+            {
+                if (this.Board[row][col] != data.PixelType)
+                {
+                    break;
+                }
+
+                pixelCount++;
+            }
+
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+            pixelCount = 1;
+            for (int col = data.Col - 1, row = data.Row - 1; col >= 0 && row >= 0; col--, row--)
+            {
+                if (this.Board[row][col] != data.PixelType)
+                {
+                    break;
+                }
+
+                pixelCount++;
+            }
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+            pixelCount = 1;
+            for (int col = data.Col + 1, row = data.Row + 1; col < 10 && row < 10; col++, row++)
+            {
+                if (this.Board[row][col] != data.PixelType)
+                {
+                    break;
+                }
+
+                pixelCount++;
+            }
+            if (pixelCount >= 5)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

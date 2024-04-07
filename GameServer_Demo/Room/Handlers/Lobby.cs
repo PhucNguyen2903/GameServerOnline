@@ -22,10 +22,14 @@ namespace GameServer_Demo.Room.Handlers
 
         public override bool JoinRoom(IPlayer player)
         {
-            base.JoinRoom(player);
-            this.RoomInfo();
-            this.SendListMatch(player);
-            return true;
+            if (base.JoinRoom(player))
+            {
+                this.RoomInfo();
+                this.SendListMatch(player);
+                return true;
+            }
+           
+            return false;
         }
 
         public void SendListMatch(IPlayer player = null)

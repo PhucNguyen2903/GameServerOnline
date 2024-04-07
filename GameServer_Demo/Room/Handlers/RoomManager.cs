@@ -1,4 +1,5 @@
-﻿using GameServer_Demo.Application.Messaging.Contains;
+﻿using GameServer_Demo.Application.Interfaces;
+using GameServer_Demo.Application.Messaging.Contains;
 using GameServer_Demo.Game_Tick_Tac_Toe.Room;
 using GameServer_Demo.Room.Constant;
 using GameServer_Demo.Room.Interfaces;
@@ -40,9 +41,13 @@ namespace GameServer_Demo.Room.Handlers
             return false;
         }
 
-        public BaseRoom CreateRoom( int timer)
+        public BaseRoom CreateRoom( int timer,string ownerId = "")
         {
             var room = new TickTacToeRoom(timer);
+            if (!string.IsNullOrEmpty(ownerId))
+            {
+                room.OwnerId = ownerId;
+            }
             Rooms.TryAdd(room.Id, room);
             return room;
         }
