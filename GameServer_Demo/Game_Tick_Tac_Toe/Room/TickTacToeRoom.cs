@@ -37,7 +37,7 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
             this.InitBoard();
         }
 
-        private void InitBoard() 
+        private void InitBoard()
         {
             this.Board = new List<List<PixelType>>();
             for (int i = 0; i < 10; i++)
@@ -51,7 +51,7 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
             }
         }
 
-        private void ResetMatch() 
+        private void ResetMatch()
         {
             this.InitBoard();
             this.CurrentTurn = null;
@@ -213,7 +213,7 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
             return true;
         }
 
-        public void SetPlace(IPlayer player, PlaceData data) 
+        public void SetPlace(IPlayer player, PlaceData data)
         {
             //check player in matchs
 
@@ -254,7 +254,7 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
             SetTurn();
         }
 
-        private void GameOver(string winerId) 
+        private void GameOver(string winerId)
         {
             _logger.Print("Game over");
             matchStatus = MatchStatus.GameOver;
@@ -271,141 +271,35 @@ namespace GameServer_Demo.Game_Tick_Tac_Toe.Room
 
         }
 
-        private bool CheckGameOver(PlaceData data) 
+        private bool CheckGameOver(PlaceData data)
         {
-            //check row
+            return CheckLine(data, 0, 1) || CheckLine(data, 1, 0) || CheckLine(data, 1, 1) || CheckLine(data, 1, -1);
+        }
+        private bool CheckLine(PlaceData data, int rowDirection, int colDirection)
+        {
+            int pixelCount = 1;
+            int row = data.Row + rowDirection;
+            int col = data.Col + colDirection;
 
-            var pixelCount = 1;
-            for (var row = data.Row - 1; row >= 0; row--)
+            while (row >= 0 && row < 10 && col >= 0 && col < 10 && this.Board[row][col] == data.PixelType)
             {
-                if (this.Board[row][data.Col] != data.PixelType)
-                {
-                    break;
-                }
                 pixelCount++;
+                row += rowDirection;
+                col += colDirection;
             }
 
-            if (pixelCount >= 5)
+            row = data.Row - rowDirection;
+            col = data.Col - colDirection;
+
+            while (row >= 0 && row < 10 && col >= 0 && col < 10 && this.Board[row][col] == data.PixelType)
             {
-                return true;
-            }
-
-
-            //check col
-            pixelCount = 1;
-
-            for (int col = data.Col - 1; col >= 0; col--)
-            {
-                if (this.Board[data.Row][col] != data.PixelType)
-                {
-                    break;
-                }
                 pixelCount++;
+                row -= rowDirection;
+                col -= colDirection;
             }
 
-            if (pixelCount >= 5)
-            {
-                return true;
-            }
-
-            // check all row
-            pixelCount = 1;
-            for (int row = 0; row < 10; row++)
-            {
-                if (this.Board[row][data.Col] != data.PixelType)
-                {
-                    break;
-                }
-                pixelCount++;
-            }
-
-            if (pixelCount >= 5)
-            {
-                return true;
-            }
-
-            pixelCount = 1;
-
-            // check all col
-
-            for (int col = 0; col < 10; col++)
-            {
-                if (this.Board[data.Row][col] != data.PixelType)
-                {
-                    break;
-                }
-                pixelCount++;
-            }
-
-            if (pixelCount >= 5)
-            {
-                return true;
-            }
-
-            //check diagonal right to left
-            pixelCount = 1;
-            for (int col = data.Col - 1, row = data.Row + 1; col >= 0  && col < 10; col--, row++)
-            {
-                if (this.Board[row][col] != data.PixelType)
-                {
-                    break;
-                }
-
-                pixelCount++;
-            }
-            if (pixelCount >= 5)
-            {
-                return true;
-            }
-
-            //check diagonal left to right
-            pixelCount = 1;
-            for (int col = data.Col + 1, row = data.Row - 1; col >= 0 && col < 10; col++, row--)
-            {
-                if (this.Board[row][col] != data.PixelType)
-                {
-                    break;
-                }
-
-                pixelCount++;
-            }
-
-            if (pixelCount >= 5)
-            {
-                return true;
-            }
-
-            pixelCount = 1;
-            for (int col = data.Col - 1, row = data.Row - 1; col >= 0 && row >= 0; col--, row--)
-            {
-                if (this.Board[row][col] != data.PixelType)
-                {
-                    break;
-                }
-
-                pixelCount++;
-            }
-            if (pixelCount >= 5)
-            {
-                return true;
-            }
-
-            pixelCount = 1;
-            for (int col = data.Col + 1, row = data.Row + 1; col < 10 && row < 10; col++, row++)
-            {
-                if (this.Board[row][col] != data.PixelType)
-                {
-                    break;
-                }
-
-                pixelCount++;
-            }
-            if (pixelCount >= 5)
-            {
-                return true;
-            }
-
-            return false;
+            return pixelCount >= 5;
         }
     }
 }
+
